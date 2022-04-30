@@ -1,26 +1,45 @@
-use std::slice::from_raw_parts_mut;
+use std::collections::HashSet;
 use reqwest;
 use tokio;
-use scraper::{Html, Selector};
 use std::fs::File;
 use std::io::prelude::*;
+use scraper::{Html, Selector};
 
 // https://stockanalysis.com/stocks/
+// https://eoddata.com/stocklist/NYSE/
 #[tokio::main]
 pub async fn get_ticker_names() -> Result<(), Box<dyn std::error::Error>> {
-    let body = reqwest::get("https://stockanalysis.com/stocks/")
-        .await?
-        .text()
-        .await?;
+    let mut counter = 1;
 
-    let fragment = Html::parse_fragment(&body);
-    let selector = Selector::parse("a").unwrap();
+    while counter <= 106 {
+        let mut url = "https://swingtradebot.com/equities?page=".to_owned() + &counter.to_string();
 
-    for element in fragment.select(&selector) {
-        if element.value().attr("href").contains(&mut "/stocks/") {
-            let mut file = File::create("tickers.txt")?;
-            file.write_all(element.);
+        println!("{}", &*url);
+
+        let body = reqwest::get(&url)
+            .await?
+            .text()
+            .await?;
+
+        counter += 1;
+
+        let mut urls: HashSet<String> = HashSet::new();
+
+        let document = Html::parse_document(&body);
+        let selector = Selector::parse(r#"table > tbody > tr > td > a"#).unwrap();
+
+        for title in document.select(&selector) {
+            let url = title.value().attr("href").expect("href not found").to_string();
+            if url != "/" || url != "." || url != ".." {
+                urls.insert(url.replace("/equities/", ""));
+            }
+
         }
+
+        for url in urls{
+            println!("{}", url);
+        }
+
     }
 
     Ok(())
