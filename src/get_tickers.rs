@@ -33,13 +33,12 @@ pub async fn get_ticker_names() -> Result<(), Box<dyn std::error::Error>> {
             let url = title.value().attr("href").expect("href not found").to_string();
             if url != "/" || url != "." || url != ".." {
                 urls.insert(url.replace("/equities/", ""));
-                add_symbol_to_db(url.replace("/equities/", ""));
             }
 
         }
 
         for url in urls{
-            println!("{}", url);
+            add_symbol_to_db(url.replace("/equities/", ""));
         }
 
     }
