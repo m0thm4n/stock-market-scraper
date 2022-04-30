@@ -4,6 +4,7 @@ use tokio;
 use std::fs::File;
 use std::io::prelude::*;
 use scraper::{Html, Selector};
+use crate::db::add_symbol_to_db;
 
 // https://stockanalysis.com/stocks/
 // https://eoddata.com/stocklist/NYSE/
@@ -32,6 +33,7 @@ pub async fn get_ticker_names() -> Result<(), Box<dyn std::error::Error>> {
             let url = title.value().attr("href").expect("href not found").to_string();
             if url != "/" || url != "." || url != ".." {
                 urls.insert(url.replace("/equities/", ""));
+                add_symbol_to_db(url.replace("/equities/", ""));
             }
 
         }
